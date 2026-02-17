@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tricode Academy Java Test</title>
+<style>
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    background:#f4f6f9;
+    margin:0;
+}
+
+.header{
+    background:#114e96;
+    color:white;
+    text-align:center;
+    padding:30px 20px;
+}
+
+.header img{
+    width:140px;
+    display:block;
+    margin:0 auto 10px auto;
+}
+
+.header h1{
+    margin:5px 0;
+    letter-spacing:3px;
+}
+
+.header p{
+    margin:0;
+    font-size:14px;
+    letter-spacing:2px;
+}
+
+.container{
+    width:700px;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.1);
+}
+
+button{
+    padding:10px 20px;
+    border:none;
+    background:#1f6feb;
+    color:white;
+    cursor:pointer;
+    border-radius:5px;
+    margin:5px;
+}
+
+button:hover{
+    background:#174ea6;
+}
+
+.timer{
+    float:right;
+    font-weight:bold;
+    color:red;
+}
+
+.option{
+    margin:8px 0;
+}
+
+.result-box{
+    background:#f1f1f1;
+    padding:15px;
+    margin-top:10px;
+    border-radius:6px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <img src="logo.jpg" alt="Tricode Academy Logo">
+    <h1>TRICODE ACADEMY</h1>
+    <p>Education, Technology, Innovation</p>
+</div>
+
+<div class="container" id="startScreen">
+    <h2>Final Java Certification Exam</h2>
+    <p>Total Questions: 30</p>
+    <p>Time Per Question: 1 Minute 30 Seconds</p>
+    <input type="text" id="candidateName" placeholder="Enter Candidate Name" style="width:100%;padding:10px;">
+    <br><br>
+    <button onclick="startExam()">START EXAM</button>
+</div>
+
+<div class="container" id="examScreen" style="display:none;">
+    <div>
+        <span id="questionNumber"></span>
+        <span class="timer" id="timer"></span>
+    </div>
+    <h3 id="questionText"></h3>
+    <div id="options"></div>
+    <button onclick="prevQuestion()">Previous</button>
+    <button onclick="nextQuestion()">Next</button>
+    <button onclick="submitExam()">Submit</button>
+</div>
+
+<div class="container" id="resultScreen" style="display:none;"></div>
+
+<script>
+const questions = [
+{q:"Which keyword defines a class?",o:["define","class","object","struct"],a:1},
+{q:"Which is primitive type?",o:["String","Integer","int","Scanner"],a:2},
+{q:"Default value of int?",o:["0","null","1","undefined"],a:0},
+{q:"Operator for comparison?",o:["=","==","+","*"],a:1},
+{q:"Block always executed?",o:["try","catch","finally","throw"],a:2},
+{q:"OOP stands for?",o:["Object Oriented Programming","Only Object Program","Object Order Process","None"],a:0},
+{q:"Which hides data?",o:["Inheritance","Encapsulation","Polymorphism","Loop"],a:1},
+{q:"Keyword for inheritance?",o:["extends","implements","super","this"],a:0},
+{q:"Interface methods default?",o:["private","protected","public abstract","static"],a:2},
+{q:"Exception dividing by zero?",o:["IOException","ArithmeticException","NullPointerException","Error"],a:1},
+{q:"Entry point method?",o:["run()","main()","start()","init()"],a:1},
+{q:"Which prevents override?",o:["static","final","abstract","void"],a:1},
+{q:"Overloading means?",o:["Same method diff params","Same method same params","Diff class","None"],a:0},
+{q:"Checked exceptions must be?",o:["Ignored","Handled","Deleted","Printed"],a:1},
+{q:"Create object keyword?",o:["make","create","new","object"],a:2},
+{q:"Root class of Java?",o:["Main","Object","System","Class"],a:1},
+{q:"Logical AND operator?",o:["&","&&","||","!"],a:1},
+{q:"Superclass reference?",o:["this","super","base","parent"],a:1},
+{q:"Constructor name must be?",o:["Same as class","void","static","any"],a:0},
+{q:"Which is runtime error?",o:["Syntax","Logical","ArithmeticException","Compile"],a:2},
+{q:"Access modifier highest restriction?",o:["public","protected","private","default"],a:2},
+{q:"Which package has Scanner?",o:["java.io","java.util","java.net","java.lang"],a:1},
+{q:"Compile time polymorphism?",o:["Overloading","Overriding","Inheritance","None"],a:0},
+{q:"Keyword for interface implement?",o:["extends","implements","interface","use"],a:1},
+{q:"Garbage collection removes?",o:["Objects","Methods","Classes","Variables"],a:0},
+{q:"Which is not primitive?",o:["int","double","boolean","String"],a:3},
+{q:"try block used for?",o:["Exception code","Loop","Class","Import"],a:0},
+{q:"catch block handles?",o:["Error","Exception","Object","Class"],a:1},
+{q:"Which is keyword?",o:["define","class","include","var"],a:1},
+{q:"Method signature includes?",o:["Name and parameters","Return type only","Body","Class"],a:0}
+];
+
+let current=0;
+let answers=new Array(questions.length).fill(null);
+let timer;
+let timeLeft=90;
+let candidate="";
+
+function startExam(){
+    candidate=document.getElementById("candidateName").value;
+    if(candidate===""){
+        alert("Enter Name");
+        return;
+    }
+    document.getElementById("startScreen").style.display="none";
+    document.getElementById("examScreen").style.display="block";
+    loadQuestion();
+    startTimer();
+}
+
+function startTimer(){
+    timer=setInterval(function(){
+        document.getElementById("timer").innerText="Time: "+timeLeft+"s";
+        timeLeft--;
+        if(timeLeft<0){
+            clearInterval(timer);
+            submitExam();
+        }
+    },1000);
+}
+
+function loadQuestion(){
+    timeLeft=90;
+    document.getElementById("questionNumber").innerText="Question "+(current+1)+" of 30";
+    document.getElementById("questionText").innerText=questions[current].q;
+    let optionsHTML="";
+    questions[current].o.forEach((opt,i)=>{
+        optionsHTML+=`<div class="option">
+        <input type="radio" name="option" value="${i}" ${answers[current]==i?"checked":""}
+        onclick="answers[${current}]=${i}">
+        ${opt}
+        </div>`;
+    });
+    document.getElementById("options").innerHTML=optionsHTML;
+}
+
+function nextQuestion(){
+    if(current<questions.length-1){
+        current++;
+        loadQuestion();
+    }
+}
+
+function prevQuestion(){
+    if(current>0){
+        current--;
+        loadQuestion();
+    }
+}
+
+function submitExam(){
+    clearInterval(timer);
+    document.getElementById("examScreen").style.display="none";
+    document.getElementById("resultScreen").style.display="block";
+
+    let score=0;
+    let reviewHTML="";
+    questions.forEach((q,i)=>{
+        if(answers[i]==q.a) score++;
+        reviewHTML+=`<div class="result-box">
+        <b>Question ${i+1}</b><br>
+        Correct: ${q.o[q.a]}<br>
+        Your Answer: ${answers[i]!=null?q.o[answers[i]]:"Not Answered"}
+        </div>`;
+    });
+
+    let percent=(score/questions.length*100).toFixed(2);
+    let message="";
+    if(percent>=80) message="Excellent Performance";
+    else if(percent>=60) message="Good Performance";
+    else if(percent>=40) message="Average Performance";
+    else message="Needs Improvement";
+
+    document.getElementById("resultScreen").innerHTML=`
+    <h2>Result</h2>
+    <p>Name: ${candidate}</p>
+    <p>Score: ${score}/30</p>
+    <p>Percentage: ${percent}%</p>
+    <h3>${message}</h3>
+    <hr>
+    ${reviewHTML}`;
+}
+</script>
+
+</body>
+</html>
